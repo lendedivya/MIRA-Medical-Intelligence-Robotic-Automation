@@ -1,0 +1,97 @@
+=====================================================
+  MIRA PROJECT - GITHUB UPLOAD STEPS (STEP BY STEP)
+=====================================================
+
+PRE-REQUISITES:
+- Git installed on your PC
+- GitHub account created (https://github.com)
+- VS Code open with Project_AI_ML_Task1 folder
+
+-----------------------------------------------------
+STEP 1: CREATE GITHUB REPOSITORY
+-----------------------------------------------------
+1. Go to https://github.com
+2. Click "+" (top right) → "New repository"
+3. Repository name: Project_AI_ML_Task1
+4. Description: Health Prediction Web App using Flask and Gemini AI
+5. Keep it PUBLIC or PRIVATE (your choice)
+6. DO NOT check "Add README" (we already have one)
+7. Click "Create repository"
+8. COPY the repository URL (e.g. https://github.com/yourname/Project_AI_ML_Task1.git)
+
+-----------------------------------------------------
+STEP 2: OPEN TERMINAL IN VS CODE
+-----------------------------------------------------
+- In VS Code: Terminal → New Terminal
+- Make sure you are in the Project_AI_ML_Task1 folder:
+  cd C:\Users\dell\Downloads\Project_AI_ML_Task1
+
+-----------------------------------------------------
+STEP 3: SETUP GIT (First time only)
+-----------------------------------------------------
+git config --global user.name "Your Name"
+git config --global user.email "your@email.com"
+
+-----------------------------------------------------
+STEP 4: CHECK .gitignore IS CORRECT
+-----------------------------------------------------
+Make sure your .gitignore file contains:
+  .env
+  database.db
+  __pycache__/
+  *.pyc
+  .venv/
+
+This ensures your API key and database are NOT uploaded.
+
+-----------------------------------------------------
+STEP 5: INITIALIZE GIT AND UPLOAD
+-----------------------------------------------------
+Run these commands ONE BY ONE in terminal:
+
+git init
+git add .
+git commit -m "Initial commit - MIRA Health Prediction App"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/Project_AI_ML_Task1.git
+git push -u origin main
+
+(Replace YOUR_USERNAME with your actual GitHub username)
+
+-----------------------------------------------------
+STEP 6: VERIFY UPLOAD
+-----------------------------------------------------
+1. Go to https://github.com/YOUR_USERNAME/Project_AI_ML_Task1
+2. You should see all your files:
+   - app.py
+   - templates/index.html
+   - README.md
+   - .gitignore
+   NOTE: .env and database.db should NOT appear (good!)
+
+-----------------------------------------------------
+STEP 7: FUTURE UPDATES (When you change code)
+-----------------------------------------------------
+git add .
+git commit -m "Your message here"
+git push
+
+=====================================================
+  COMMON ERRORS & FIXES
+=====================================================
+
+ERROR: "git is not recognized"
+FIX: Download Git from https://git-scm.com/download/win
+     Restart VS Code after installing
+
+ERROR: "remote origin already exists"
+FIX: git remote remove origin
+     Then run the remote add command again
+
+ERROR: Authentication failed
+FIX: Use GitHub Personal Access Token instead of password
+     Go to GitHub → Settings → Developer Settings → 
+     Personal Access Tokens → Generate new token
+     Use that token as your password
+
+=====================================================
