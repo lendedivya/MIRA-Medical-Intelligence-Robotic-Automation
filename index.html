@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIRA — Health Prediction</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body { background: #f0f4f8; font-family: 'Segoe UI', sans-serif; }
+  .navbar { background: linear-gradient(135deg, #1a237e, #0d47a1); }
+  .card { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+  .card-header { background: linear-gradient(135deg, #1565c0, #1976d2); color: #fff; border-radius: 16px 16px 0 0 !important; }
+  .btn-primary { background: #1565c0; border: none; }
+  .btn-primary:hover { background: #0d47a1; }
+  .remarks-cell { max-width: 280px; font-size: .82rem; color: #555; }
+  .badge-glucose   { background:#e3f2fd; color:#1565c0; }
+  .badge-hb        { background:#e8f5e9; color:#2e7d32; }
+  .badge-chol      { background:#fff3e0; color:#e65100; }
+  .table th        { background:#e8eaf6; font-size:.85rem; }
+  .spinner-border  { width:1.2rem; height:1.2rem; }
+  #toast-container { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark px-4 py-3">
+  <span class="navbar-brand fw-bold fs-5">🏥 MIRA — Medical Intelligence &amp; Health Prediction</span>
+</nav>
+
+<div class="container py-4">
+
+  <!-- Add / Edit Form -->
+  <div class="card mb-4">
+    <div class="card-header py-3">
+      <h5 class="mb-0" id="form-title">➕ Add New Patient</h5>
+    </div>
+    <div class="card-body">
+      <div id="error-box" class="alert alert-danger d-none"></div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Full Name *</label>
+          <input id="f-name" type="text" class="form-control" placeholder="e.g. Rahul Sharma">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Date of Birth *</label>
+          <input id="f-dob" type="date" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Email Address *</label>
+          <input id="f-email" type="email" class="form-control" placeholder="e.g. rahul@gmail.com">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Glucose (mg/dL) *</label>
+          <input id="f-glucose" type="number" step="0.1" class="form-control" placeholder="Normal: 70–99">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Haemoglobin (g/dL) *</label>
+          <input id="f-hb" type="number" step="0.1" class="form-control" placeholder="Normal: 12–17.5">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Cholesterol (mg/dL) *</label>
+          <input id="f-chol" type="number" step="0.1" class="form-control" placeholder="Normal: below 200">
+        </div>
+      </div>
+      <div class="mt-3 d-flex gap-2">
+        <button class="btn btn-primary px-4" onclick="submitForm()" id="btn-submit">
+          <span id="btn-text">💾 Save Patient</span>
+          <span id="btn-spinner" class="spinner-border d-none ms-1"></span>
+        </button>
+        <button class="btn btn-outline-secondary px-3" onclick="resetForm()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patient Table -->
+  <div class="card">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">📋 Patient Records</h5>
+      <button class="btn btn-sm btn-light" onclick="loadPatients()">🔄 Refresh</button>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead>
+            <tr>
+              <th class="ps-3">#</th>
+              <th>Name</th>
+              <th>DOB</th>
+              <th>Email</th>
+              <th>Glucose</th>
+              <th>Haemoglobin</th>
+              <th>Cholesterol</th>
+              <th>AI Remarks</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="patient-table">
+            <tr><td colspan="9" class="text-center py-4 text-muted">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<script>
+let editingId = null;
+
+// ── Load patients ────────────────────────────────────────
+async function loadPatients() {
+  const tbody = document.getElementById("patient-table");
+  tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">Loading...</td></tr>`;
+  const res  = await fetch("/api/patients");
+  const data = await res.json();
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No records found. Add a patient above.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(p => `
+    <tr>
+      <td class="ps-3 text-muted">${p.id}</td>
+      <td class="fw-semibold">${p.full_name}</td>
+      <td>${p.dob}</td>
+      <td>${p.email}</td>
+      <td><span class="badge badge-glucose px-2 py-1">${p.glucose}</span></td>
+      <td><span class="badge badge-hb px-2 py-1">${p.haemoglobin}</span></td>
+      <td><span class="badge badge-chol px-2 py-1">${p.cholesterol}</span></td>
+      <td class="remarks-cell">${p.remarks || '—'}</td>
+      <td class="text-center">
+        <button class="btn btn-sm btn-outline-primary me-1" onclick="editPatient(${p.id})">✏️</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="deletePatient(${p.id}, '${p.full_name}')">🗑️</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+// ── Submit (add / update) ────────────────────────────────
+async function submitForm() {
+  hideErrors();
+  const body = {
+    full_name:   document.getElementById("f-name").value,
+    dob:         document.getElementById("f-dob").value,
+    email:       document.getElementById("f-email").value,
+    glucose:     document.getElementById("f-glucose").value,
+    haemoglobin: document.getElementById("f-hb").value,
+    cholesterol: document.getElementById("f-chol").value,
+  };
+
+  setLoading(true);
+  const url    = editingId ? `/api/patients/${editingId}` : "/api/patients";
+  const method = editingId ? "PUT" : "POST";
+  const res    = await fetch(url, { method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+  const data   = await res.json();
+  setLoading(false);
+
+  if (!res.ok) {
+    showErrors(data.errors || ["Something went wrong."]);
+    return;
+  }
+  showToast(editingId ? "✅ Patient updated!" : "✅ Patient added! AI Remarks generated.", "success");
+  resetForm();
+  loadPatients();
+}
+
+// ── Edit ─────────────────────────────────────────────────
+async function editPatient(id) {
+  const res = await fetch(`/api/patients/${id}`);
+  const p   = await res.json();
+  editingId = id;
+  document.getElementById("f-name").value    = p.full_name;
+  document.getElementById("f-dob").value     = p.dob;
+  document.getElementById("f-email").value   = p.email;
+  document.getElementById("f-glucose").value = p.glucose;
+  document.getElementById("f-hb").value      = p.haemoglobin;
+  document.getElementById("f-chol").value    = p.cholesterol;
+  document.getElementById("form-title").textContent = "✏️ Edit Patient #" + id;
+  document.getElementById("btn-text").textContent   = "💾 Update Patient";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// ── Delete ───────────────────────────────────────────────
+async function deletePatient(id, name) {
+  if (!confirm(`"${name}" ला delete करायचे आहे का?`)) return;
+  await fetch(`/api/patients/${id}`, { method: "DELETE" });
+  showToast("🗑️ Patient deleted.", "danger");
+  loadPatients();
+}
+
+// ── Reset form ───────────────────────────────────────────
+function resetForm() {
+  editingId = null;
+  ["f-name","f-dob","f-email","f-glucose","f-hb","f-chol"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("form-title").textContent  = "➕ Add New Patient";
+  document.getElementById("btn-text").textContent    = "💾 Save Patient";
+  hideErrors();
+}
+
+// ── Helpers ──────────────────────────────────────────────
+function setLoading(on) {
+  document.getElementById("btn-submit").disabled = on;
+  document.getElementById("btn-spinner").classList.toggle("d-none", !on);
+}
+function showErrors(errs) {
+  const box = document.getElementById("error-box");
+  box.innerHTML = errs.map(e => `• ${e}`).join("<br>");
+  box.classList.remove("d-none");
+}
+function hideErrors() { document.getElementById("error-box").classList.add("d-none"); }
+function showToast(msg, type) {
+  const div = document.createElement("div");
+  div.className = `alert alert-${type} shadow py-2 px-3`;
+  div.textContent = msg;
+  document.getElementById("toast-container").appendChild(div);
+  setTimeout(() => div.remove(), 3500);
+}
+
+loadPatients();
+</script>
+</body>
+</html>
