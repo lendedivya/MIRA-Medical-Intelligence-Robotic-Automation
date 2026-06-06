@@ -14,9 +14,12 @@ Persistent Storage — SQLite database
 
 📁 Project Structure
 Project_AI_ML_Task1/
-├── app.py                  ← Flask backend + REST API routes
-├── templates/
-│   └── index.html          ← Frontend (HTML + Bootstrap 5)
-├── .env                    ← API key (do NOT upload to GitHub)
-├── .gitignore              ← Excludes .env and database.db
-└── README.md
+- app.py                  ← Flask backend + REST API routes
+- templates/
+    -- index.html          ← Frontend (HTML + Bootstrap 5)
+- .env                    ← API key (do NOT upload to GitHub)
+- .gitignore              ← Excludes .env and database.db 
+- README.md
+  
+## 🌐 Live Demo
+👉 https://mira-medical-intelligence-robotic.onrender.com
